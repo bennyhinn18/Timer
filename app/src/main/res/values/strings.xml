@@ -1,0 +1,20 @@
+<resources>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="stop">Stop</string>
+    <string name="reset">Reset</string>
+    <string name="skip_5s">Skip 5s</string>
+    <string name="select_color">Select Color</string>
+    <string name="time">00:00</string>
+    <string name="app_name">Timer</string>
+    <string name="Custom_Timer_Intervals">Custom Timer Intervals</string>
+    <string name="input_string">Enter custom timer intervals (comma-separated)</string>
+    <string-array name="options">
+        <item>Prepared Speech</item>
+        <item>Table Topics</item>
+        <item>Ice Breaker</item>
+        <item>Countdown</item>
+        <item>Custom Timer</item>
+    </string-array>
+</resources>
