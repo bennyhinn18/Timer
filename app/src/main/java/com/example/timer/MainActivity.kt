@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private var pauseStartTime: Long = 0
     private var startMillis: Long = 0
     private var currentOption = "Prepared Speech"
+    private val customIntervals = mutableMapOf<String, Long>()
     private val timerIntervals = mutableMapOf<String, MutableMap<String, Long>>(
         "Prepared Speech" to mutableMapOf(
             "white" to 300,  // 5 minutes
@@ -95,6 +96,11 @@ class MainActivity : AppCompatActivity() {
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            clockLabel.textSize = 250f
+        } else {
+            clockLabel.textSize = 100f
+        }
         // Update your layout elements here if needed
     }
     override fun onSaveInstanceState(outState: Bundle) {
@@ -122,8 +128,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
-
     private fun setupSpinner() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -140,24 +144,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun parseCustomTimerIntervals(input: String): Map<String, Long>? {
-        val intervals = mutableMapOf<String, Long>()
-        val values = input.split(",").map { it.trim() }
-        if (values.size != 3) {
-            Toast.makeText(this, "Invalid input format", Toast.LENGTH_SHORT).show()
-            return null
-        }
-        try {
-            intervals["green"] = values[0].toLong()
-            intervals["yellow"] = values[1].toLong()
-            intervals["red"] = values[2].toLong()
-
-        } catch (e: NumberFormatException) {
-            Toast.makeText(this, "Invalid input values", Toast.LENGTH_SHORT).show()
-            return null
-        }
-        return intervals
-    }
 
     private fun setOption(option: String) {
         currentOption = option
@@ -166,6 +152,7 @@ class MainActivity : AppCompatActivity() {
             showCustomTimerDialog()
         }
     }
+
     private fun showCustomTimerDialog() {
         val dialogBuilder = AlertDialog.Builder(this)
         val inputEditText = EditText(this)
@@ -174,20 +161,32 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Custom Timer Intervals")
             .setPositiveButton("Set") { dialog, _ ->
                 val input = inputEditText.text.toString()
-                val intervals = parseCustomTimerIntervals(input)
-                if (intervals != null) {
-                    timerIntervals["Custom Timer"]?.put("white", 5) // Update the "white" interval value
+                val values = input.split(",").map { it.trim() }
 
+                if (values.size == 3) {
+                    try {
+                        timerIntervals["Custom Timer"] = mutableMapOf(
+                            "white" to values[0].toLong(),
+                            "green" to values[1].toLong(),
+                            "yellow" to values[2].toLong()
+                        )
+                        updateBackground()
+                    } catch (e: NumberFormatException) {
+                        Toast.makeText(this, "Invalid input values", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "Invalid input format", Toast.LENGTH_SHORT).show()
                 }
+
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
             }
+
         val dialog = dialogBuilder.create()
         dialog.show()
     }
-
 
     private fun startStopwatch() {
         if (isPaused) {
@@ -246,15 +245,17 @@ class MainActivity : AppCompatActivity() {
         if (!isPaused) {
             val elapsedMillis = System.currentTimeMillis() - startMillis - pausedTime
 
+            val intervals = timerIntervals[currentOption]
+
             if (currentOption == "Custom Timer") {
-                val customIntervals = timerIntervals["Custom Timer"]
+                val customIntervals = intervals?.get("Custom Timer")
                 if (customIntervals != null) {
                     val elapsedSeconds = elapsedMillis / 1000
 
                     val background = when {
-                        elapsedSeconds < customIntervals["white"] ?: 0L -> R.color.white
-                        elapsedSeconds < customIntervals["green"] ?: 0L -> R.color.green
-                        elapsedSeconds < customIntervals["yellow"] ?: 0L -> R.color.yellow
+                        elapsedSeconds < customIntervals -> R.color.white
+                        elapsedSeconds < customIntervals -> R.color.green
+                        elapsedSeconds < customIntervals -> R.color.yellow
                         else -> R.color.red
                     }
 
@@ -269,7 +270,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            val intervals = timerIntervals[currentOption]
             val elapsedSeconds = elapsedMillis / 1000
 
             val background = when {
@@ -290,7 +290,6 @@ class MainActivity : AppCompatActivity() {
 
         handler.postDelayed({ updateBackground() }, 1000)
     }
-
 
     private fun updateClock() {
         if (!isPaused) {
