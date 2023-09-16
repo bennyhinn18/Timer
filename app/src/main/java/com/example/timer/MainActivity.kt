@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
                 val input = inputEditText.text.toString()
                 val intervals = parseCustomTimerIntervals(input)
                 if (intervals != null) {
-                    timerIntervals["Custom Timer"]?.put("white", 240) // Update the "white" interval value
+                    timerIntervals["Custom Timer"]?.put("white", 5) // Update the "white" interval value
 
                 }
                 dialog.dismiss()
@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         resetButton.isEnabled = false
         updateBackground()
         supportActionBar?.show()
-         // Reset main layout background color
+        // Reset main layout background color
         mainlayout.setBackgroundColor(getColor(R.color.white))
 
     }
@@ -245,17 +245,16 @@ class MainActivity : AppCompatActivity() {
     private fun updateBackground() {
         if (!isPaused) {
             val elapsedMillis = System.currentTimeMillis() - startMillis - pausedTime
-            val intervals = timerIntervals[currentOption]
 
-            if (currentOption == "Custom Timer" && intervals != null) {
-                val customIntervals = intervals[currentOption]
+            if (currentOption == "Custom Timer") {
+                val customIntervals = timerIntervals["Custom Timer"]
                 if (customIntervals != null) {
                     val elapsedSeconds = elapsedMillis / 1000
 
                     val background = when {
-                        elapsedSeconds < intervals["white"] ?: 0L -> R.color.white
-                        elapsedSeconds < intervals["green"] ?: 0L -> R.color.green
-                        elapsedSeconds < intervals["yellow"] ?: 0L -> R.color.yellow
+                        elapsedSeconds < customIntervals["white"] ?: 0L -> R.color.white
+                        elapsedSeconds < customIntervals["green"] ?: 0L -> R.color.green
+                        elapsedSeconds < customIntervals["yellow"] ?: 0L -> R.color.yellow
                         else -> R.color.red
                     }
 
@@ -265,30 +264,33 @@ class MainActivity : AppCompatActivity() {
 
                     toolbar.setBackgroundColor(colorRes)
                     clockLabel.setBackgroundColor(colorRes)
-                    
+                    mainlayout.setBackgroundColor(colorRes)
+                    return  // Exit the function early if it's a Custom Timer
                 }
-            } else {
-                val elapsedSeconds = elapsedMillis / 1000
-
-                val background = when {
-                    elapsedSeconds < intervals?.get("white") ?: 0L -> R.color.white
-                    elapsedSeconds < intervals?.get("green") ?: 0L -> R.color.green
-                    elapsedSeconds < intervals?.get("yellow") ?: 0L -> R.color.yellow
-                    else -> R.color.red
-                }
-
-                val colorRes = ContextCompat.getColor(this, background)
-                val colorDrawable = ColorDrawable(colorRes)
-                window.decorView.background = colorDrawable
-
-                toolbar.setBackgroundColor(colorRes)
-                clockLabel.setBackgroundColor(colorRes)
-                mainlayout.setBackgroundColor(colorRes)
             }
+
+            val intervals = timerIntervals[currentOption]
+            val elapsedSeconds = elapsedMillis / 1000
+
+            val background = when {
+                elapsedSeconds < intervals?.get("white") ?: 0L -> R.color.white
+                elapsedSeconds < intervals?.get("green") ?: 0L -> R.color.green
+                elapsedSeconds < intervals?.get("yellow") ?: 0L -> R.color.yellow
+                else -> R.color.red
+            }
+
+            val colorRes = ContextCompat.getColor(this, background)
+            val colorDrawable = ColorDrawable(colorRes)
+            window.decorView.background = colorDrawable
+
+            toolbar.setBackgroundColor(colorRes)
+            clockLabel.setBackgroundColor(colorRes)
+            mainlayout.setBackgroundColor(colorRes)
         }
 
         handler.postDelayed({ updateBackground() }, 1000)
     }
+
 
     private fun updateClock() {
         if (!isPaused) {
