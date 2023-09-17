@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resetButton: Button
     private lateinit var clockLabel: TextView
     private lateinit var menuSpinner: Spinner
+    private lateinit var generateResultButton: Button
     private lateinit var mainlayout: LinearLayout
     private var isPaused = false
     private var pausedTime: Long = 0
@@ -84,12 +85,15 @@ class MainActivity : AppCompatActivity() {
         clockLabel = binding.clockLabel
         menuSpinner = binding.menuSpinner
         mainlayout = binding.mainLayout
-
+        generateResultButton = binding.generateResultButton
         setupSpinner()
 
         startButton.setOnClickListener { startStopwatch() }
         stopButton.setOnClickListener { pauseStopwatch() }
         resetButton.setOnClickListener { resetStopwatch() }
+
+        generateResultButton.setOnClickListener { generateResult()}
+
     }
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         return true
@@ -98,8 +102,10 @@ class MainActivity : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             clockLabel.textSize = 250f
+            menuSpinner.visibility = View.GONE
         } else {
             clockLabel.textSize = 100f
+            menuSpinner.visibility = View.VISIBLE
         }
         // Update your layout elements here if needed
     }
@@ -209,6 +215,7 @@ class MainActivity : AppCompatActivity() {
             resetButton.isEnabled = true
         }
         supportActionBar?.hide()
+
     }
 
     private fun pauseStopwatch() {
@@ -301,6 +308,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         handler.postDelayed({ updateClock() }, 1000)
+    }
+    private fun generateResult() {
+        val category = currentOption // Get the current category
+        val elapsedMillis = System.currentTimeMillis() - startMillis - pausedTime
+
+        // You can implement your logic to calculate the result based on the category and elapsed time here.
+        // For example, you can use a when statement to calculate different results for different categories.
+
+        // Create a result message
+        val resultMessage = "Result for $category:\nElapsed Time: ${formatTime(elapsedMillis)}"
+
+        // Show the result in a dialog
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setTitle("Result")
+        dialogBuilder.setMessage(resultMessage)
+        dialogBuilder.setPositiveButton("OK") { dialog, _ ->
+            dialog.dismiss()
+        }
+        val dialog = dialogBuilder.create()
+        dialog.show()
+    }
+
+    private fun formatTime(timeInMillis: Long): String {
+        val totalSeconds = timeInMillis / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return String.format("%02d:%02d", minutes, seconds)
     }
 
     override fun onDestroy() {
